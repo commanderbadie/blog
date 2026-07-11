@@ -3,28 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Blog</title>
+<title>Build Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>My Blog</h1>
-    <p>Thoughts, builds, and lessons along the way.</p>
+
+  <header class="site">
+    <div class="site-bar">
+      <a class="mark" href="index.html">build<span>log</span></a>
+      <span class="tag">Notes from building in India</span>
+    </div>
   </header>
 
-  <main>
-    <ul class="post-list">
-      <li>
-        <a href="posts/second-post.html">
-          <h2>My First Blog Post</h2>
-          <p class="date">July 2026</p>
-        </a>
-      </li>
-    </ul>
-  </main>
+  <div class="wrap">
+    <section class="hero">
+      <p class="eyebrow">Founder journal</p>
+      <h1>Figuring out what's worth building.</h1>
+      <p>Notes on customer discovery, product decisions, and lessons from building an AI tool for construction businesses — written as it happens, not after.</p>
+    </section>
 
-  <footer>
-    <p>&copy; 2026 My Blog. Built with GitLab Pages.</p>
+    <section class="log">
+
+      <a class="entry" href="posts/second-post.html">
+        <span class="num">002</span>
+        <div>
+          <h2>Talking to hardware store owners</h2>
+          <p class="excerpt">What I learned from a week of customer interviews, and why the obvious problem usually isn't the real one.</p>
+          <span class="meta">July 2026 · 4 min read</span>
+        </div>
+      </a>
+
+      <a class="entry" href="posts/first-post.html">
+        <span class="num">001</span>
+        <div>
+          <h2>Why I'm starting here</h2>
+          <p class="excerpt">The first entry. What I'm building, why construction, and what I'm trying to prove before writing a single line of product code.</p>
+          <span class="meta">July 2026 · 3 min read</span>
+        </div>
+      </a>
+
+    </section>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>© 2026 buildlog</span>
+      <span>Built with GitLab Pages</span>
+    </div>
   </footer>
+
 </body>
 </html>
