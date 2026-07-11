@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ship It Safely: A Pre-Launch Security Guide — Build Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <header class="site">
+    <div class="site-bar">
+      <a class="mark" href="../index.html">build<span>log</span></a>
+      <span class="tag">Notes from building in India</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="article-head">
+      <a class="back" href="../index.html">&larr; all entries</a>
+      <p class="num">LOG 003</p>
+      <h1>Ship It Safely: A Pre-Launch Security Guide</h1>
+      <p class="meta">July 2026 · 9 min read · Free resource</p>
+    </div>
+
+    <article class="body">
+      <p>Five copy-paste prompts that turn any AI coding assistant — Cursor, Lovable, Bolt, Replit, v0, Claude Code — into a security reviewer for your app, before it goes live.</p>
+
+      <h2>How to use this guide</h2>
+      <p>Each prompt below targets a different layer of risk in a typical app that was built quickly with an AI coding tool. They're modeled on checks that real security tools and professional auditors run — just translated into plain-language instructions your AI assistant can act on directly. Drop them in one at a time, in order, and actually read what comes back before moving to the next one.</p>
+      <p>1. Credential &amp; Secret Exposure Sweep — catches hardcoded keys and tokens before they ship.<br>
+      2. User Data Trail Audit — traces personal data through your app end to end.<br>
+      3. Go-Live Readiness Checklist — the last-mile checks before deployment.<br>
+      4. Auth &amp; Payments Deep Dive — a harder look at your riskiest logic.<br>
+      5. Red Team Pass — tries to break the app the way an attacker would.</p>
+      <p>Before you paste Prompt 4, fill in the bracketed line describing what your app actually does (payments, custom login, admin roles, etc.) — the rest works as written.</p>
+      <p><strong>One honest note:</strong> these prompts catch the mistakes that sink most AI-assisted apps — leaked keys, sloppy data handling, missing rate limits, broken access control. They are not a replacement for a professional security review. If your app touches real money or personal data at meaningful scale, run these and get a human to look at it before launch.</p>
+
+      <h2>1. Credential &amp; Secret Exposure Sweep</h2>
+      <p>Find every hardcoded key, password, and token before it reaches a public repo.</p>
+      <p><strong>Paste this into your AI coding tool:</strong></p>
+      <p>1. Pull every secret out of the source. Search the entire codebase for API keys, passwords, tokens, and connection strings written directly into the code — config files, utility functions, comments, everywhere. None of them should exist as plain string literals. Move each one into an environment variable.</p>
+      <p>2. Go platform by platform. Supabase: the anon key is safe on the client only when Row Level Security is switched on for every table — without it, the whole database is exposed. The service role key must never touch client-side code. Stripe: publishable key can ship to the browser, the secret key cannot. Database URLs (Postgres, MongoDB, etc.): environment variable only. OAuth secrets and JWT signing keys: server-side only. Any other third-party key (OpenAI, Twilio, SendGrid, AWS, Firebase): environment variable, no exceptions.</p>
+      <p>3. Check what the frontend actually ships. In React or Next.js, any variable prefixed with NEXT_PUBLIC_ or REACT_APP_ gets bundled straight into client code. Confirm nothing sensitive is using those prefixes — only values that are genuinely safe to expose (like an RLS-protected anon key) should carry them.</p>
+      <p>4. Lock down git. Confirm .env is in .gitignore. Generate a .env.example file listing every required variable name with a placeholder value — no real secrets in it.</p>
+      <p>5. Check what gets printed or returned. Scan console.log calls, error handlers, and API responses for anything that could leak a key, token, or connection string by accident.</p>
+      <p>6. Flag git history. If a secret was ever committed in plain text, it still lives in the repo's history even after you remove it. Add a note to the README to rotate any key that was ever hardcoded, immediately.</p>
+      <p>Once you're done, list every secret you found, where it was, and where it lives now.</p>
+
+      <h2>2. User Data Trail Audit</h2>
+      <p>Follow personal data from the moment it's collected to everywhere it ends up.</p>
+      <p><strong>Paste this into your AI coding tool:</strong></p>
+      <p>1. Map every collection point. Find each place the app takes in user data — email, phone, password, name, address, date of birth, payment details, IP address, device info — and trace where it goes immediately after.</p>
+      <p>2. Scrub every log. Go through console.log calls, loggers, and error handlers. Anywhere a user's email, password, phone number, token, or other personal data gets printed, remove it or replace it with a placeholder like "[REDACTED]".</p>
+      <p>3. Look at every third-party connection. Analytics, error tracking, payment processors, email tools, AI APIs — for each one, list exactly which fields of user data get sent, and trim anything the service doesn't actually need.</p>
+      <p>4. Verify password handling. Passwords must be hashed with bcrypt, argon2, or scrypt — never MD5 or bare SHA-256. They should never be stored, logged, returned in an API response, or sent anywhere except the hashing function itself.</p>
+      <p>5. Check cookies and browser storage. Any cookie holding sensitive data needs httpOnly, secure, and sameSite flags. Personal data should never sit in localStorage — it's readable by any script running on the page, including an XSS payload.</p>
+      <p>6. Filter every API response. No endpoint should hand back more than the client needs. Add field-level filtering everywhere — strip password hashes, internal IDs, and any data belonging to other users.</p>
+      <p>7. Give users a way out. If there's no account or data deletion flow yet, add a basic one that removes or anonymizes personal data on request.</p>
+      <p>Show me the full map: what's collected, where it's stored, where it leaves the app, and what you fixed.</p>
+
+      <h2>3. Go-Live Readiness Checklist</h2>
+      <p>The last-mile checks that decide whether this is actually ready to deploy.</p>
+      <p><strong>Paste this into your AI coding tool:</strong></p>
+      <p>1. Environment variables. Every variable the app depends on should be validated on startup, with a clear error if it's missing. Critical ones — database URL, API keys, auth secret — should stop the app from starting at all if they're not set.</p>
+      <p>2. Strip debug leftovers. Remove leftover debugging console.log calls, commented-out blocks, TODO/FIXME notes about unfinished security work, hardcoded test credentials, and any test-only routes (/test, /debug, /seed-data, admin backdoors). Debug mode should default to off.</p>
+      <p>3. Clean up error responses. Nothing sent back to the client should include a stack trace, raw database error, or file path. Return a generic message plus a correlation ID, and keep the detailed version in server-side logs only.</p>
+      <p>4. Add security headers. Every response should carry X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Strict-Transport-Security (one-year max-age), and a Content-Security-Policy limiting scripts to your own domain. If you're on Express, wire in helmet.</p>
+      <p>5. Rate-limit anything auth-related. Login, signup, password reset, and OTP endpoints all need limits — at minimum, 5 login attempts per minute per IP and 3 password-reset requests per hour.</p>
+      <p>6. Lock down CORS. Make sure it isn't set to allow all origins (*) unless the API is genuinely meant to be public. Restrict it to your actual frontend domain.</p>
+      <p>7. Harden the database. Confirm the connection uses TLS in production, there are no default credentials anywhere, and the database port isn't open to the internet without authentication.</p>
+      <p>Walk through each item, tell me pass or fail, and what you changed for anything that failed.</p>
+
+      <h2>4. Auth &amp; Payments Deep Dive</h2>
+      <p>A harder look at the logic that actually matters if it breaks.</p>
+      <p>Before pasting: fill in the bracket in the first line with what your app actually handles — e.g. "This app has Razorpay payments and email/password auth." Delete the brackets after.</p>
+      <p><strong>Paste this into your AI coding tool:</strong></p>
+      <p>This app has [payments / custom auth / admin roles — describe yours]. Run a deeper pass on the parts of the code where a mistake actually costs something:</p>
+      <p><strong>Authentication &amp; authorization.</strong> Every protected route and API endpoint should go through proper auth middleware — confirm none are accidentally open. Check for IDOR: no endpoint should take a user ID from the client and return that user's data without confirming ownership first. Password reset tokens must be random, single-use, expire within 15 minutes, and be tied to one specific user. JWTs need a strong signing secret, a real expiry, and a blacklist so logout actually invalidates the token.</p>
+      <p><strong>Payment logic.</strong> The server must independently recalculate totals, tax, and discounts — never trust a price the client sends. Check whether an attacker could tamper with price, quantity, or discount fields in the request body. Confirm webhook signatures from your payment provider are actually verified. Access to paid features should only unlock after payment status is confirmed server-side, not based on anything the client claims.</p>
+      <p><strong>Input handling.</strong> Every form field, URL parameter, and API input should go through parameterized queries — no raw SQL built from user input. Check whether any user input gets rendered into HTML without sanitization (XSS risk). For file uploads, validate file type server-side, enforce a size limit, and never serve uploaded files from a domain with execute permissions.</p>
+      <p>For each issue: what it is, exactly where it lives in the code, how it could be exploited, and the fix you applied.</p>
+
+      <h2>5. Red Team Pass</h2>
+      <p>Stop reviewing your own code and try to break it instead.</p>
+      <p><strong>Paste this into your AI coding tool:</strong></p>
+      <p>Put yourself in an attacker's shoes and try to break this app through each of these angles:</p>
+      <p>1. Tampering with IDs. Can I swap a user ID, order ID, or document ID in the URL or request body and pull back someone else's data? Test every endpoint that accepts one.</p>
+      <p>2. Getting past login. Does any endpoint respond without a valid auth token? Does the app correctly reject expired or malformed tokens? Are there any default admin accounts still sitting around with known credentials?</p>
+      <p>3. Climbing privilege levels. If there are roles (user, moderator, admin), can a regular user reach admin routes by guessing the URL or editing their role inside a JWT or session? Role checks need to happen server-side — hiding a button in the UI doesn't count.</p>
+      <p>4. Abusing features at scale. Are there limits on mass signups, message spam, upload volume, API call bursts, and promo/referral codes being used over and over?</p>
+      <p>5. Injecting content. Try dropping script tags into every text field — usernames, bios, comments, search, filenames. Try SQL injection payloads through search bars, filters, and login forms.</p>
+      <p>6. Poking at internal exposure. Is a database admin panel reachable? Do error messages leak environment variables? Is .env or .git accessible over a direct URL? Are internal API docs or health-check endpoints exposing more than they should?</p>
+      <p>7. Breaking the business logic. If money moves through this app — can a payment go through negative? Can discounts stack past what's intended? Can a free trial be restarted? Can someone refer themselves for a reward? These are logic flaws, not typos — they need a fix, not a patch.</p>
+      <p>For every hole you find: what an attacker would actually do with it, how bad it could get, and fix the data-exposure ones first.</p>
+      <p>Re-run Prompt 5 after any major feature ships — new code is new attack surface. And once again: for anything handling real money or personal data at scale, pair this with an actual human security review before you go live.</p>
+    </article>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>© 2026 Badieuddin</span>
+      <span>buildlog</span>
+    </div>
+  </footer>
+
+</body>
+</html>
