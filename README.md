@@ -1,6 +1,6 @@
 # Blog
 
-yea
+
 
 ## Getting started
 
